@@ -1,5 +1,6 @@
 import sys, pygame
 from pygame.locals import *
+from lib_game1 import *
 
 resPath = './res/'
 
@@ -23,15 +24,15 @@ green = pygame.Color(0, 255, 0)
 blue  = pygame.Color(0, 0, 255)
 
 mouse_x, mouse_y = 0, 0
-beam1_x, beam1_y = 0, 0
+#beam1_x, beam1_y = 0, 0
 #beam_x, beam_y = 0, 0
 
 # kv1 = pygame.image.load("kv1.gif")
-bg    = pygame.image.load(resPath+"Space-1.jpg").convert()
-kv1   = pygame.image.load(resPath+"tank_kv_small.png").convert()
+bg        = pygame.image.load(resPath+"Space-1.jpg").convert()
+kv1       = pygame.image.load(resPath+"tank_kv_small.png").convert()
 kv1dead   = pygame.image.load(resPath+"tank_kv_dead.png").convert()
-station = pygame.image.load(resPath+"Spacestation.png").convert()
-beam1 = pygame.image.load(resPath+"beams.png")#.convert()
+station   = pygame.image.load(resPath+"Spacestation.png").convert()
+beam1     = pygame.image.load(resPath+"beams.png")#.convert()
 
 
 kv1.set_colorkey(black)
@@ -67,15 +68,20 @@ stationRect = station.get_rect()
 stationRect.x = 10
 stationRect.y = (bgRect.height / 2) - (stationRect.height / 2)
 
-#beamsList = []
-#kv1List   = []
+beamsList = []
+# beamsPool = []
+
+# i = 0
+
+
+#atackersList   = []
 
 ########################
 
-showBeam = False
-showDead = False
+showBeam  = False
+showDead  = False
 showDead2 = False
-gameOver = False
+gameOver  = False
 
 while True:
     for event in pygame.event.get():
@@ -86,14 +92,17 @@ while True:
             mouse_x, mouse_y = event.pos
             stationRect.y = mouse_y
         elif event.type == MOUSEBUTTONUP:
+
           #  beam1_x, beam1_y = event.pos
             beam1Rect.x = stationRect.width #    beam1_x #kv1Rect.x
             beam1Rect.y = stationRect.y + (stationRect.height / 2) #    beam1_y #kv1Rect.y
+            beamsList.append(newBeam(len(beamsList), beam1Rect))
+            print "Beam List size: {}".format(len(beamsList))
           #  print 'mouse X:Y = '+ str(beam1_x) +':'+ str(beam1_y)
-            bm1_speed = (5, 0)
+          #  bm1_speed = (5, 0)
             sndLaser1.play()
          #   beam1Rect.move_ip(beam1_x, beam1_y)
-            showBeam = True
+         #   showBeam = True
         elif event.type == KEYDOWN:
             if event.key == K_ESCAPE:
                 pygame.event.post(pygame.event.Event(QUIT))
@@ -104,7 +113,7 @@ while True:
     screen.blit(bg, bgRect)
     screen.blit(station, stationRect)
 
-################
+### Processing Atackers
 
     kv1Rect = kv1Rect.move(speed)
 
@@ -120,56 +129,63 @@ while True:
 
 ################
 
-    kv2Rect = kv2Rect.move(speed2)
-    if kv2Rect.left < 0 or kv2Rect.right > width:
-        speed2[0] = -speed2[0]
-    if kv2Rect.top < 0 or kv2Rect.bottom > height:
-        speed2[1] = -speed2[1]        
+    # kv2Rect = kv2Rect.move(speed2)
+    # if kv2Rect.left < 0 or kv2Rect.right > width:
+    #     speed2[0] = -speed2[0]
+    # if kv2Rect.top < 0 or kv2Rect.bottom > height:
+    #     speed2[1] = -speed2[1]        
 
-    if kv2Rect.x < (bgRect.width * 0.2):
-        gameOver = True    
+    # if kv2Rect.x < (bgRect.width * 0.2):
+    #     gameOver = True    
 
-    screen.blit(kv1, kv2Rect)
+    # screen.blit(kv1, kv2Rect)
 
  
 
-    if showBeam:
-        beam1Rect = beam1Rect.move(bm1_speed)
-        screen.blit(beam1, beam1Rect)
-        print 'Beam left {}, right {}, top {}, bottom {}'.format(beam1Rect.left, beam1Rect.right, beam1Rect.top, beam1Rect.bottom)
+# Processing BEAMS
+    for bm in beamsList:
+        if bm['visible']:
+            bm['rect'] = bm['rect'].move(bm['speed'])
+            screen.blit(beam1, bm['rect'])
+ #           beam1Rect = beam1Rect.move(bm1_speed)
+#            screen.blit(beam1, beam1Rect)
+     #       print 'Beam left {}, right {}, top {}, bottom {}'.format(beam1Rect.left, beam1Rect.right, beam1Rect.top, beam1Rect.bottom)
 
-        if (beam1Rect.left > 0 and beam1Rect.right < width and 
-            beam1Rect.top > 0 and beam1Rect.bottom < height):
-            showBeam = True
-        else:
-            showBeam = False
-            bm1_speed = (0, 0)
+            if (bm['rect'].left > 0 and bm['rect'].right < width and 
+                bm['rect'].top > 0 and bm['rect'].bottom < height):
+                bm['visible'] = True
+            else:
+                bm['visible'] = False
+                bm['speed'] = (0, 0)
 
-        if beam1Rect.colliderect(kv1Rect):
-            print "Popal!!!!"
-            kv1deadRect.center = kv1Rect.center
-            kv1Rect.x = bgRect.width - kv1Rect.width
-            bm1_speed = (0, 0)
-            showBeam = False
-            showDead = True
-            sndAlien1.play()
-       #     beam1Rect.x = bgRect.height + 1
-     
-        if beam1Rect.colliderect(kv2Rect):
-            print "Popal!!!!"
-            kv2deadRect.center = kv2Rect.center
-            kv2Rect.x = bgRect.width - kv2Rect.width
-            bm1_speed = (0, 0)
-            showBeam = False
-            showDead2 = True
-            sndAlien1.play()
+            if bm['rect'].colliderect(kv1Rect):
+                print "Popal!!!!"
+                kv1deadRect.center = kv1Rect.center
+                kv1Rect.x = bgRect.width - kv1Rect.width
+                bm['visible'] = False
+                bm['speed'] = (0, 0)
+                showDead = True
+                sndAlien1.play()
+           #     beam1Rect.x = bgRect.height + 1
+         
+            # if beam1Rect.colliderect(kv2Rect):
+            #     print "Popal!!!!"
+            #     kv2deadRect.center = kv2Rect.center
+            #     kv2Rect.x = bgRect.width - kv2Rect.width
+            #     bm1_speed = (0, 0)
+            #     showBeam = False
+            #     showDead2 = True
+            #     sndAlien1.play()
 
+
+###########
     if showDead :
         screen.blit(kv1dead, kv1deadRect)
 
-    if showDead2 :
-        screen.blit(kv1dead, kv2deadRect)
+    # if showDead2 :
+    #     screen.blit(kv1dead, kv2deadRect)
 
+######
 
     if gameOver:
         msgScreenObj = fntObj.render(msgGO, False, red)
@@ -177,6 +193,8 @@ while True:
         msgRect.topleft = (bgRect.width/2 - msgRect.width/2, bgRect.height/2 - msgRect.height/2)
         screen.blit(msgScreenObj, msgRect)
         speed = (0, 0)
+
+
 
     pygame.display.flip()
 
