@@ -1,11 +1,12 @@
 import sys, pygame
 import random, os
 from pygame.locals import *
-from random import randint
+from random import randint, choice
 from lib_game1 import *
 
 
 def loadImg(file_name, img_type=''):
+    """Loading image file"""
     full_name = os.path.join('res','Img', img_type, file_name)
     try:
         img = pygame.image.load(full_name)
@@ -19,6 +20,7 @@ def loadImg(file_name, img_type=''):
 
 
 def loadSnd(file_name):
+    """Loading sound file"""    
     class NoSnd:
         """No Sound class"""
         def play(self):
@@ -47,12 +49,16 @@ def loadFont(file_name, font_size):
         raise SystemExit, messag
 
 
-#### MAIN ###
+def getRndSpeed():
+    spd1 = choice((-2, -1, 1, 2))
+    spd2 = choice((-3, -2, -1, 1, 2, 3))
+#    spd2 = randint(-3,3)
+    return [spd1, spd2]
 
 
-#alienspaceship_left.png
-
-#resPath = './res/'
+############
+#   MAIN 
+############
 
 
 ### VARIABLES
@@ -65,8 +71,8 @@ msgGO = 'Game Over'
 speed     = [-2, 2]
 speed2    = [-3, -3]
 
-alien_speed1    = [-3, -3]
-alien_speed2    = [-2, 2]
+alien_speed1   = [-3, -3]
+alien_speed2   = [-2, 2]
 bm1_speed      = [5, 0]
 laser1_speed   = [10, 0]
 
@@ -77,8 +83,6 @@ mouse_x, mouse_y = 0, 0
 
 beamsList    = []
 atackersList = []
-
-
 
 showBeam   = False
 showLaser  = False
@@ -93,12 +97,9 @@ pygame.init()
 
 fpsClock = pygame.time.Clock()
 
-
-size = width, height = 1200, 700    #bg.get_size() # 640, 480
+size = width, height = 1120, 700    #bg.get_size() # 640, 480
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption('Space Invaiders '+ver)
-
-
 
 black = pygame.Color(0, 0, 0)
 white = pygame.Color(255,255,255)
@@ -106,18 +107,12 @@ red   = pygame.Color(255,0,0)
 green = pygame.Color(0, 255, 0)
 blue  = pygame.Color(0, 0, 255)
 
-# kv1 = pygame.image.load("kv1.gif")
-#bg        = pygame.image.load(resPath+"Space-1.jpg").convert()
-# kv1       = pygame.image.load(resPath+"tank_kv_small.png").convert()
-# kv1dead   = pygame.image.load(resPath+"tank_kv_dead.png").convert()
-# station   = pygame.image.load(resPath+"Spacestation.png").convert()
-# beam1     = pygame.image.load(resPath+"beams.png").convert_alpha()
 
-
-## LOADING RESOURCES
+### LOADING RESOURCES
 
 bg, bgRect           = loadImg('Space-2.jpg', 'Backgrounds')
-aln1, aln1Rect       = loadImg('alienspaceship_left.png', 'Spaceships')
+l_aln1, aln1Rect   = loadImg('alienspaceship_left.png', 'Spaceships')
+r_aln1, r_aln1Rect   = loadImg('alienspaceship_right.png', 'Spaceships')
 d_aln, d_alnRect     = loadImg('alienspaceship_left_dead.png', 'Spaceships')
 station, stationRect = loadImg('Spacestation.png')
 beam1, beam1Rect     = loadImg('beam1_yellow_right.png', 'Weaporns')
@@ -137,7 +132,7 @@ aln1Rect.y = aln1Rect.height + 1
 
 
 aln2Rect   = aln1Rect.copy() 
-aln2Rect.x = bgRect.width - aln2Rect.width - 1
+#aln2Rect.x = bgRect.width - aln2Rect.width - 1
 aln2Rect.y = bgRect.height - aln2Rect.height - 1
 
 # aln3Rect   = aln1Rect.copy() 
@@ -149,9 +144,9 @@ stationRect.y = (bgRect.height / 2) - (stationRect.height / 2)
 
 
 ### POPULATING ATACKERS LIST
-
-a1 = Atacker('KV1', alien_speed1, 10, aln1Rect, (bgRect.width, bgRect.height))
-a2 = Atacker('KV2', alien_speed2, 10, aln2Rect, (bgRect.width, bgRect.height))
+randint(1,3)
+a1 = Atacker('KV1', getRndSpeed(), 10, l_aln1, r_aln1, aln1Rect, (bgRect.width, bgRect.height))
+a2 = Atacker('KV2', getRndSpeed(), 10, l_aln1, r_aln1, aln2Rect, (bgRect.width, bgRect.height))
 # a3 = Atacker('KV3', alien_speed1, 10, aln3Rect, (bgRect.width, bgRect.height))
 
 
@@ -159,48 +154,11 @@ atackersList.append(a1)
 atackersList.append(a2)
 
 
-# kv1.set_colorkey(black)
-# kv1dead.set_colorkey(white)
-# station.set_colorkey(black)
-#beam1.set_colorkey(black)
-
-#sndAlien1 = pygame.mixer.Sound(resPath+'snd/alien-noise-01.wav')
-#sndLaser1 = pygame.mixer.Sound(resPath+'snd/laser-01.wav')
-
-
-
-
-# bgRect  = bg.get_rect()
-
-# aln1Rect = kv1.get_rect()
-# aln1Rect.x = bgRect.width - aln1Rect.width
-
-# aln2Rect   = aln1Rect.copy() # kv1.get_rect()
-# aln2Rect.x = bgRect.width - aln2Rect.width - 1
-# aln2Rect.y = bgRect.height - aln2Rect.height - 1
-
-# d_alnRect = kv1dead.get_rect()
-# kv2deadRect = kv1dead.get_rect()
-
-# beam1Rect = beam1.get_rect()
-
-# stationRect = station.get_rect()
-# stationRect.x = 10
-# stationRect.y = (bgRect.height / 2) - (stationRect.height / 2)
-
-
-# kv3Rect   = kv1.get_rect()
-# kv3Rect.x = bgRect.width - kv3Rect.width - 1
-# kv3Rect.y = randint(kv3Rect.height, bgRect.height - kv3Rect.height - 1)
-
-
-# a2 = Atacker('KV1_2', speed2, 10, aln2Rect, (bgRect.width, bgRect.height))
-# a3 = Atacker('KV1_3', [-2, -2], 10, kv3Rect, (bgRect.width, bgRect.height))
-# a3 = Atacker('KV1_2', [-2, 2], 10, (bgRect.width - aln2Rect.width, bgRect.height - aln2Rect.height))
 
 
 ########################
-
+#       Main LOOP
+########################
 
 while True:
     for event in pygame.event.get():
@@ -262,10 +220,10 @@ while True:
        # at.move()
         at.rect = at.rect.move(at.speed)
         at.checkBound()
-        screen.blit(aln1, at.rect)
+        screen.blit(at.img, at.rect)
  
 
-# Processing BEAMS
+### Processing BEAMS
     for bm in beamsList:
         if bm['visible']:
             bm['rect'] = bm['rect'].move(bm['speed'])
@@ -323,7 +281,6 @@ while True:
 
 
     pygame.display.flip()
-
     fpsClock.tick(30)
 
 
