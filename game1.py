@@ -1,59 +1,9 @@
 import sys, pygame
-import random, os
 from pygame.locals import *
-from random import randint, choice
 from lib_game1 import *
+from Atacker import *
 
 
-def loadImg(file_name, img_type=''):
-    """Loading image file"""
-    full_name = os.path.join('res','Img', img_type, file_name)
-    try:
-        img = pygame.image.load(full_name)
-    except pygame.error, message:
-        print 'Cant load image: ', full_name
-        raise SystemExit, message
-
-    img = img.convert_alpha()
-
-    return img, img.get_rect()
-
-
-def loadSnd(file_name):
-    """Loading sound file"""    
-    class NoSnd:
-        """No Sound class"""
-        def play(self):
-            pass
-            
-    if not pygame.mixer or not pygame.mixer.get_init():
-       return NoSnd()
-
-    full_name = os.path.join('res', 'Snd', file_name)
-    try:
-        snd = pygame.mixer.Sound(full_name)
-    except pygame.error, message:
-        print 'Cant load sound: ', full_name
-        #raise SystemExit, message  
-        return NoSnd()
-
-    return snd  
-
-
-def loadFont(file_name, font_size):
-    full_name = os.path.join('res', 'Fonts', file_name)
-    try:
-        fnt = pygame.font.Font(full_name, font_size)
-    except pygame.error, message:
-        print 'Cant load font: ', full_name
-        raise SystemExit, messag
-
-
-def getRndSpeed():
-    spd1 = choice((-2, -1, 1, 2))
-    spd2 = choice((-3, -2, -1, 1, 2, 3))
-#    spd2 = randint(-3,3)
-    return [spd1, spd2]
 
 
 ############
@@ -63,6 +13,7 @@ def getRndSpeed():
 
 ### VARIABLES
 ver = 'v.0.01'
+cFPS = 30
 
 msg = 'Hi there!!!!'
 msgGO = 'Game Over'
@@ -132,12 +83,11 @@ aln1Rect.y = aln1Rect.height + 1
 
 
 aln2Rect   = aln1Rect.copy() 
-#aln2Rect.x = bgRect.width - aln2Rect.width - 1
 aln2Rect.y = bgRect.height - aln2Rect.height - 1
 
-# aln3Rect   = aln1Rect.copy() 
-# aln3Rect.x = bgRect.width - aln3Rect.width - 1
-# aln3Rect.y = bgRect.height - aln3Rect.height - 1
+aln3Rect   = aln1Rect.copy() 
+aln3Rect.y = bgRect.height - aln3Rect.height - 1
+
 
 stationRect.x = 10
 stationRect.y = (bgRect.height / 2) - (stationRect.height / 2)
@@ -147,11 +97,12 @@ stationRect.y = (bgRect.height / 2) - (stationRect.height / 2)
 randint(1,3)
 a1 = Atacker('KV1', getRndSpeed(), 10, l_aln1, r_aln1, aln1Rect, (bgRect.width, bgRect.height))
 a2 = Atacker('KV2', getRndSpeed(), 10, l_aln1, r_aln1, aln2Rect, (bgRect.width, bgRect.height))
-# a3 = Atacker('KV3', alien_speed1, 10, aln3Rect, (bgRect.width, bgRect.height))
+a3 = Atacker('KV3', getRndSpeed(), 10, l_aln1, r_aln1, aln3Rect, (bgRect.width, bgRect.height))
 
 
 atackersList.append(a1)
 atackersList.append(a2)
+atackersList.append(a3)
 
 
 
@@ -182,49 +133,33 @@ while True:
         elif event.type == KEYDOWN:
             if event.key == K_ESCAPE:
                 pygame.event.post(pygame.event.Event(QUIT))
-            elif event.key == K_UP:
-                speed[1] = -speed[1]
+            elif event.key == K_w:
+                print 'W'
+            elif event.key == K_s:
+                print 'S'
+            elif event.key == K_a:
+                print 'A'
+            elif event.key == K_d:
+                print 'D'
 
 
     screen.blit(bg, bgRect)
     screen.blit(station, stationRect)
 
 ### Processing Atackers
-
-    # aln1Rect = aln1Rect.move(speed)
-
-    # if aln1Rect.left < 0 or aln1Rect.right > width:
-    #     speed[0] = -speed[0]
-    # if aln1Rect.top < 0 or aln1Rect.bottom > height:
-    #     speed[1] = -speed[1]
-
-    # if aln1Rect.x < (bgRect.width * 0.2):
-    #     gameOver = True    
-
-    # screen.blit(kv1, aln1Rect)
-
-################
-
-    # aln2Rect = aln2Rect.move(speed2)
-    # if aln2Rect.left < 0 or aln2Rect.right > width:
-    #     speed2[0] = -speed2[0]
-    # if aln2Rect.top < 0 or aln2Rect.bottom > height:
-    #     speed2[1] = -speed2[1]        
-
-    # if aln2Rect.x < (bgRect.width * 0.2):
-    #     gameOver = True    
-
-    # screen.blit(kv1, aln2Rect)
     for at in atackersList:
-        print "--> moving: " + at.name + " with speed: "+ str(at.speed)
-       # at.move()
         at.rect = at.rect.move(at.speed)
         at.checkBound()
         screen.blit(at.img, at.rect)
+        # print "--> moving: " + at.name + " with speed: "+ str(at.speed)
+       # at.move()
  
 
 ### Processing BEAMS
     for bm in beamsList:
+        targetIdx = 0
+        targetObj = None
+
         if bm['visible']:
             bm['rect'] = bm['rect'].move(bm['speed'])
             screen.blit(beam1, bm['rect'])
@@ -240,26 +175,19 @@ while True:
                 bm['speed'] = (0, 0)
                 beamsList.remove(bm)
 
-            if bm['rect'].colliderect(aln1Rect):
-                print "Popal!!!!"
+#            if bm['rect'].colliderect(aln1Rect):
+            targetIdx = bm['rect'].collidelist(atackersList)
+            if targetIdx > -1:
+                targetObj = atackersList[targetIdx]
+                print "Popal v "+ targetObj.name + " HP left: "+ str(targetObj.getHP())
+                targetObj.hit(bm['damage'])
                 d_alnRect.center = aln1Rect.center
 
-                aln1Rect.x = bgRect.width - aln1Rect.width
                 bm['visible'] = False
                 bm['speed'] = (0, 0)
                 beamsList.remove(bm)
                 showDead = True
                 sndAlien1.play()
-           #     beam1Rect.x = bgRect.height + 1
-         
-            # if beam1Rect.colliderect(aln2Rect):
-            #     print "Popal!!!!"
-            #     kv2deadRect.center = aln2Rect.center
-            #     aln2Rect.x = bgRect.width - aln2Rect.width
-            #     bm1_speed = (0, 0)
-            #     showBeam = False
-            #     showDead2 = True
-            #     sndAlien1.play()
 
 
 ###########
@@ -281,6 +209,7 @@ while True:
 
 
     pygame.display.flip()
-    fpsClock.tick(30)
+    fpsClock.tick(cFPS)
 
 
+sys.exit()
