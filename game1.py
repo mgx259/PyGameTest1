@@ -90,9 +90,6 @@ aln3Rect   = aln1Rect.copy()
 aln3Rect.y = bgRect.height - aln3Rect.height - 1
 
 
-stationRect.x = 10
-stationRect.y = (bgRect.height / 2) - (stationRect.height / 2)
-
 
 ### POPULATING ATACKERS LIST
 randint(1,3)
@@ -108,6 +105,10 @@ atackersList.append(a3)
 
 plr = Player('MiR', 10, station, stationRect, (bgRect.width, bgRect.height))
 
+plr.rect.x = plr.rect.width + 5
+plr.rect.y = (bgRect.height / 2) - (plr.rect.height / 2)
+
+
 
 
 ########################
@@ -121,11 +122,11 @@ while True:
             sys.exit()
         elif event.type == MOUSEMOTION:
             mouse_x, mouse_y = event.pos
-            stationRect.y = mouse_y
+            #plr.move_mouse((plr.rect.width + 5, mouse_y))
         elif event.type == MOUSEBUTTONUP:
           #  beam1_x, beam1_y = event.pos
-            beam1Rect.x = stationRect.width #    beam1_x #aln1Rect.x
-            beam1Rect.y = stationRect.y + (stationRect.height / 2) #    beam1_y #aln1Rect.y
+            beam1Rect.x = plr.rect.centerx    
+            beam1Rect.y = plr.rect.y + (plr.rect.height / 2) 
             beamsList.append(newBeam(len(beamsList), beam1Rect))
             print "Beam List size: {}".format(len(beamsList))
           #  print 'mouse X:Y = '+ str(beam1_x) +':'+ str(beam1_y)
@@ -138,17 +139,19 @@ while True:
                 pygame.event.post(pygame.event.Event(QUIT))
             elif event.key == K_w:
                 print 'W'
+                plr.changeSpeed([0, -2])
             elif event.key == K_s:
                 print 'S'
+                plr.changeSpeed([0, 2])
             elif event.key == K_a:
                 print 'A'
+                plr.changeSpeed([-2, 0])
             elif event.key == K_d:
                 print 'D'
+                plr.changeSpeed([2, 0])
 
 
     screen.blit(bg, bgRect)
-    screen.blit(station, stationRect)
-
 
     spdCnt -= 1
 
@@ -165,6 +168,13 @@ while True:
     # reseting speed change counter
     if spdCnt < 0:
         spdCnt = cSpdChangeCounter
+
+
+### Processing Player
+    plr.rect = plr.rect.move(plr.speed)
+    plr.checkBound()
+    screen.blit(plr.img, plr.rect)
+
 
 ### Processing BEAMS
     for bm in beamsList:
