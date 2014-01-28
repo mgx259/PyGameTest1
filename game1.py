@@ -2,8 +2,7 @@ import sys, pygame
 from pygame.locals import *
 from lib_game1 import *
 from Atacker import *
-
-
+from Player import *
 
 
 ############
@@ -41,6 +40,9 @@ showDead   = False
 #showDead2 = False
 gameOver   = False
 
+cSpdChangeCounter = 100
+spdCnt = cSpdChangeCounter
+
 
 ### PYGAME INIT
 
@@ -75,7 +77,6 @@ sndLaser1 = loadSnd('laser-01.wav')
 fntObj  = loadFont('Anita semi square.ttf', 32)
 
 
-
 ### SETTING COORDINATES
 
 aln1Rect.x = bgRect.width - aln1Rect.width - 1
@@ -99,11 +100,13 @@ a1 = Atacker('KV1', getRndSpeed(), 10, l_aln1, r_aln1, aln1Rect, (bgRect.width, 
 a2 = Atacker('KV2', getRndSpeed(), 10, l_aln1, r_aln1, aln2Rect, (bgRect.width, bgRect.height))
 a3 = Atacker('KV3', getRndSpeed(), 10, l_aln1, r_aln1, aln3Rect, (bgRect.width, bgRect.height))
 
-
 atackersList.append(a1)
 atackersList.append(a2)
 atackersList.append(a3)
 
+
+
+plr = Player('MiR', 10, station, stationRect, (bgRect.width, bgRect.height))
 
 
 
@@ -146,14 +149,22 @@ while True:
     screen.blit(bg, bgRect)
     screen.blit(station, stationRect)
 
+
+    spdCnt -= 1
+
 ### Processing Atackers
     for at in atackersList:
         at.rect = at.rect.move(at.speed)
         at.checkBound()
         screen.blit(at.img, at.rect)
+        if spdCnt < 0:
+            at.move(getRndSpeed())
         # print "--> moving: " + at.name + " with speed: "+ str(at.speed)
        # at.move()
  
+    # reseting speed change counter
+    if spdCnt < 0:
+        spdCnt = cSpdChangeCounter
 
 ### Processing BEAMS
     for bm in beamsList:
