@@ -1,58 +1,64 @@
+import os, pygame
+import random
+from random import randint, choice
 
 
 def newBeam(nr, rect):
     newBeam = {'name': 'beam_'+str(nr), 
                'speed': [5,0], 
                'visible' : True,
-               'rect' : rect
+               'rect' : rect,
+               'damage' : 2
              }
     return newBeam
 
 
-class Atacker():
-    """Basic Atacker class"""
-    #speed = []
-    __Speed = []
-    __HP = 0
+def loadImg(file_name, img_type=''):
+    """Loading image file"""
+    full_name = os.path.join('res','Img', img_type, file_name)
+    try:
+        img = pygame.image.load(full_name)
+    except pygame.error, message:
+        print 'Cant load image: ', full_name
+        raise SystemExit, message
 
-    # boundries (w,h)
-    def __init__(self, name, speed, hp, img_l, img_r, rect, boundries):
-        self.__Speed = speed
-        self.__HP = hp
+    img = img.convert_alpha()
 
-        self.name = name
-        self.speed = speed
-        self.hp = hp
-        self.img = img_l
-        self.img_l = img_l
-        self.img_r = img_r
-        self.rect = rect
-        self.bound = boundries
+    return img, img.get_rect()
 
-    def stop(self):
-        self.speed = [0,0]
+def loadSnd(file_name):
+    """Loading sound file"""    
+    class NoSnd:
+        """No Sound class"""
+        def play(self):
+            pass
+            
+    if not pygame.mixer or not pygame.mixer.get_init():
+       return NoSnd()
 
-    def start(self):
-        self.speed = self.__Speed
+    full_name = os.path.join('res', 'Snd', file_name)
+    try:
+        snd = pygame.mixer.Sound(full_name)
+    except pygame.error, message:
+        print 'Cant load sound: ', full_name
+        #raise SystemExit, message  
+        return NoSnd()
 
-    def fire(self):
-        pass
+    return snd  
 
-    def hit(self, damage):
-        self.hp -= damage
-        if (self.hp < 1):
-            self.stop()
 
-    def checkBound(self):
-      #  self.rect.move(self.speed)
-      #  print "Checking speed "+ str(self.speed)
-        if self.rect.left < 0:
-            self.speed[0] = self.speed[0] * -1
-            self.img = self.img_r
-        if self.rect.right > self.bound[0]:
-            self.speed[0] = self.speed[0] * -1
-            self.img = self.img_l
-           # print "Vertikalnij BUM"
-        if self.rect.top < 0 or self.rect.bottom > self.bound[1]:
-            self.speed[1] = self.speed[1] * -1      
-            print "Gorizontalnij BUM"
+def loadFont(file_name, font_size):
+    full_name = os.path.join('res', 'Fonts', file_name)
+    try:
+        fnt = pygame.font.Font(full_name, font_size)
+    except pygame.error, message:
+        print 'Cant load font: ', full_name
+        raise SystemExit, messag
+
+
+def getRndSpeed():
+    spd1 = choice((-2, -1, 1, 2))
+    spd2 = choice((-3, -2, -1, 1, 2, 3))
+#    spd2 = randint(-3,3)
+    return [spd1, spd2]
+
