@@ -2,15 +2,14 @@ from GenObj import *
 
 class Atacker(GenObj):
     """Basic enemy class"""
+    speed = [0, 0]
 
-
-    # boundries (w,h)
-    def __init__(self, name, speed, hp, img_l, img_r, rect, boundries):
-        self.__Speed = speed
+    def __init__(self, name, hp, img_l, img_r, rect, boundries):
+      #  self.__Speed = speed
         self.__HP = hp
 
         self.name = name
-        self.speed = speed
+        self.initMove()
         self.hp = hp
         self.img = img_l
         self.img_l = img_l
@@ -28,3 +27,13 @@ class Atacker(GenObj):
             self.img = self.img_l
         if self.rect.top < 0 or self.rect.bottom > self.bound[1]:
             self.speed[1] = self.speed[1] * -1   
+
+
+    def ai_decision(self):
+        """ Take some "smart" decision """
+
+        decision = {}
+        decision['direction_change'] = self.changeDirection()
+        decision['fire'] = self.fire()
+
+        return decision
