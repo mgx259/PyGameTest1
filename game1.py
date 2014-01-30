@@ -1,35 +1,27 @@
 import sys, pygame
+import copy
+
 from pygame.locals import *
 from lib_game1 import *
 from Atacker import *
 from Player import *
-
-
-############
-#   MAIN 
-############
+from Weapon import *
 
 
 ### VARIABLES
 ver = 'v.0.01'
 cFPS = 30
+cAICooldown = 50
+
+
+spdCnt = cAICooldown
+
 
 msg = 'Hi there!!!!'
 msgGO = 'Game Over'
 
 
-speed     = [-2, 2]
-speed2    = [-3, -3]
-
-alien_speed1   = [-3, -3]
-alien_speed2   = [-2, 2]
-bm1_speed      = [5, 0]
-laser1_speed   = [10, 0]
-
-
 mouse_x, mouse_y = 0, 0
-#beam1_x, beam1_y = 0, 0
-#beam_x, beam_y = 0, 0
 
 beamsList    = []
 atackersList = []
@@ -40,8 +32,6 @@ showDead   = False
 #showDead2 = False
 gameOver   = False
 
-cSpdChangeCounter = 100
-spdCnt = cSpdChangeCounter
 
 
 ### PYGAME INIT
@@ -64,15 +54,18 @@ blue  = pygame.Color(0, 0, 255)
 ### LOADING RESOURCES
 
 bg, bgRect           = loadImg('Space-2.jpg', 'Backgrounds')
-l_aln1, aln1Rect   = loadImg('alienspaceship_left.png', 'Spaceships')
+l_aln1, aln1Rect     = loadImg('alienspaceship_left.png', 'Spaceships')
 r_aln1, r_aln1Rect   = loadImg('alienspaceship_right.png', 'Spaceships')
 d_aln, d_alnRect     = loadImg('alienspaceship_left_dead.png', 'Spaceships')
 station, stationRect = loadImg('Spacestation.png')
 beam1, beam1Rect     = loadImg('beam1_yellow_right.png', 'Weaporns')
-lser1, laser1Rect    = loadImg('laser1_red.png', 'Weaporns')
+laser1, laser1Rect   = loadImg('laser1_red.png', 'Weaporns')
 
 sndAlien1 = loadSnd('alien-noise-01.wav')
 sndLaser1 = loadSnd('laser-01.wav')
+sndLaser2 = loadSnd('laser-02.wav')
+powerup   = loadSnd('Power-Up.wav')
+
 
 fntObj  = loadFont('Anita semi square.ttf', 32)
 
@@ -92,24 +85,24 @@ aln3Rect.y = bgRect.height - aln3Rect.height - 1
 
 
 ### POPULATING ATACKERS LIST
-randint(1,3)
-a1 = Atacker('KV1', getRndSpeed(), 10, l_aln1, r_aln1, aln1Rect, (bgRect.width, bgRect.height))
-a2 = Atacker('KV2', getRndSpeed(), 10, l_aln1, r_aln1, aln2Rect, (bgRect.width, bgRect.height))
-a3 = Atacker('KV3', getRndSpeed(), 10, l_aln1, r_aln1, aln3Rect, (bgRect.width, bgRect.height))
+
+screen_bound = (bgRect.width, bgRect.height)
+
+a1 = Atacker('KV1', 10, l_aln1, r_aln1, aln1Rect, screen_bound)
+a2 = Atacker('KV2', 10, l_aln1, r_aln1, aln2Rect, screen_bound)
+a3 = Atacker('KV3', 10, l_aln1, r_aln1, aln3Rect, screen_bound)
 
 atackersList.append(a1)
 atackersList.append(a2)
 atackersList.append(a3)
 
 
+### CREATING PLAYER OBJECT
 
-plr = Player('MiR', 10, station, stationRect, (bgRect.width, bgRect.height))
+plr = Player('MiR', 15, station, stationRect, screen_bound)
 
 plr.rect.x = plr.rect.width + 5
 plr.rect.y = (bgRect.height / 2) - (plr.rect.height / 2)
-
-
-
 
 ########################
 #       Main LOOP
@@ -125,15 +118,14 @@ while True:
             #plr.move_mouse((plr.rect.width + 5, mouse_y))
         elif event.type == MOUSEBUTTONUP:
           #  beam1_x, beam1_y = event.pos
-            beam1Rect.x = plr.rect.centerx    
-            beam1Rect.y = plr.rect.y + (plr.rect.height / 2) 
-            beamsList.append(newBeam(len(beamsList), beam1Rect))
+            beamsList.append(Weapon('beam_'+ str(len(beamsList)), 
+                                     2, 5, 
+                                     plr.rect.centerx, plr.rect.y + (plr.rect.height / 2),
+                                     beam1, beam1Rect, sndLaser1)
+            )
+
             print "Beam List size: {}".format(len(beamsList))
-          #  print 'mouse X:Y = '+ str(beam1_x) +':'+ str(beam1_y)
-          #  bm1_speed = (5, 0)
             sndLaser1.play()
-         #   beam1Rect.move_ip(beam1_x, beam1_y)
-         #   showBeam = True
         elif event.type == KEYDOWN:
             if event.key == K_ESCAPE:
                 pygame.event.post(pygame.event.Event(QUIT))
@@ -157,17 +149,31 @@ while True:
 
 ### Processing Atackers
     for at in atackersList:
+        decision = None
         at.rect = at.rect.move(at.speed)
         at.checkBound()
         screen.blit(at.img, at.rect)
         if spdCnt < 0:
-            at.move(getRndSpeed())
-        # print "--> moving: " + at.name + " with speed: "+ str(at.speed)
-       # at.move()
- 
+            decision = at.ai_decision()
+
+            if decision['fire']:
+                laser1Rect.x = at.rect.centerx    
+                laser1Rect.y = at.rect.y + (at.rect.height / 2) 
+                beamsList.append(Weapon('laser_'+ str(len(beamsList)), 
+                                         1, -7, 
+                                         at.rect.x - (at.rect.width + 2), 
+                                         at.rect.y + (at.rect.height / 2),
+                                         laser1, laser1Rect, sndLaser2)
+                )
+              
+                sndLaser2.play() 
+
+            if decision['direction_change']:
+                powerup.play()
+
     # reseting speed change counter
     if spdCnt < 0:
-        spdCnt = cSpdChangeCounter
+        spdCnt = cAICooldown
 
 
 ### Processing Player
@@ -181,34 +187,28 @@ while True:
         targetIdx = 0
         targetObj = None
 
-        if bm['visible']:
-            bm['rect'] = bm['rect'].move(bm['speed'])
-            screen.blit(beam1, bm['rect'])
- #           beam1Rect = beam1Rect.move(bm1_speed)
-#            screen.blit(beam1, beam1Rect)
-     #       print 'Beam left {}, right {}, top {}, bottom {}'.format(beam1Rect.left, beam1Rect.right, beam1Rect.top, beam1Rect.bottom)
+  #      print "BEAM: "+ bm.name + "  xy: "+ str(bm.pos) + " spd: "+str(bm.speed)
+  #      print "rect: "+ str(bm.rect.left) + " - "+ str(bm.rect.right) +" - "+ str(bm.rect.top) + " - "+ str(bm.rect.bottom)
 
-            if (bm['rect'].left > 0 and bm['rect'].right < width and 
-                bm['rect'].top > 0 and bm['rect'].bottom < height):
-                bm['visible'] = True
-            else:
-                bm['visible'] = False
-                bm['speed'] = (0, 0)
-                beamsList.remove(bm)
+        bm.rect = bm.rect.move(bm.speed)
+        screen.blit(bm.img, bm.rect)
 
-#            if bm['rect'].colliderect(aln1Rect):
-            targetIdx = bm['rect'].collidelist(atackersList)
-            if targetIdx > -1:
-                targetObj = atackersList[targetIdx]
-                print "Popal v "+ targetObj.name + " HP left: "+ str(targetObj.getHP())
-                targetObj.hit(bm['damage'])
-                d_alnRect.center = aln1Rect.center
+        if (bm.rect.left > 0 and bm.rect.right < width and 
+            bm.rect.top > 0 and bm.rect.bottom < height):
+          #  bm.visible = True
+            pass
+        else:
+            beamsList.remove(bm)
 
-                bm['visible'] = False
-                bm['speed'] = (0, 0)
-                beamsList.remove(bm)
-                showDead = True
-                sndAlien1.play()
+        targetIdx = bm.rect.collidelist(atackersList)
+        if targetIdx > -1:
+            targetObj = atackersList[targetIdx]
+            print "Popal v "+ targetObj.name + " HP left: "+ str(targetObj.getHP())
+            targetObj.hit(bm.damage)
+            d_alnRect.center = aln1Rect.center
+            beamsList.remove(bm)
+ #           showDead = True
+            sndAlien1.play()
 
 
 ###########
@@ -225,8 +225,6 @@ while True:
         msgRect = msgScreenObj.get_rect()
         msgRect.topleft = (bgRect.width/2 - msgRect.width/2, bgRect.height/2 - msgRect.height/2)
         screen.blit(msgScreenObj, msgRect)
-        speed = (0, 0)
-
 
 
     pygame.display.flip()
