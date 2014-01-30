@@ -1,11 +1,15 @@
+import random
+from random import randint, choice
+
 class GenObj():
     """General space object class"""
 
     __Speed = [0,0]
-    __HP = 0
+    __HP = 10
+    __ALIVE = True
 
     def __init__(self, name, hp, img, rect, boundries):
-        self.__Speed = speed
+      #  self.__Speed = speed
         self.__HP = hp
 
         self.name = name
@@ -21,12 +25,19 @@ class GenObj():
         self.speed = self.__Speed
 
     def fire(self):
-        pass
+        rnd = randint(1,10)
+        isChanged = False
+
+        if rnd > 3:
+            isChanged = True
+        return isChanged
+
 
     def hit(self, damage):
         self.hp -= damage
         if (self.hp < 1):
             self.stop()
+            self.__ALIVE = False
 
     def checkBound(self):
         if self.rect.left < 0 or self.rect.right > self.bound[0]:
@@ -37,6 +48,26 @@ class GenObj():
     def getHP(self):
         return self.hp
 
-    def move(self, new_speed):
-        self.speed = new_speed
-        #print "Speed of "+ self.name + " changed to "+ str(new_speed)
+    # def move(self, new_speed):
+    #     self.speed = new_speed
+    #     #print "Speed of "+ self.name + " changed to "+ str(new_speed)
+
+
+    def changeDirection(self):
+        rnd = randint(1,10)
+        isChanged = False
+
+        if rnd > 5:
+            self.speed = self.getRndSpeed()
+            isChanged = True
+        return isChanged
+
+
+    def initMove(self):
+        self.speed = self.getRndSpeed()
+
+
+    def getRndSpeed(self):
+        spd1 = choice((-2, -1, 1, 2))
+        spd2 = choice((-3, -2, -1, 1, 2, 3))
+        return [spd1, spd2]        
