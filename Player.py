@@ -11,11 +11,12 @@ class Player(GenObj):
         self.img = img
         self.rect = rect
         self.bound = boundries
-
         self.speed = [0,0]
+
 
     def move_mouse(self, new_coord):
         self.rect.center = new_coord
+        
 
     def changeSpeed(self, new_speed):
         tmpx = self.speed[0]
