@@ -40,3 +40,5 @@ def loadFont(file_name, font_size):
     except pygame.error, message:
         print 'Cant load font: ', full_name
         raise SystemExit, messag
+
+    return fnt
