@@ -19,6 +19,7 @@ spdCnt = cAICooldown
 
 msg = 'Hi there!!!!'
 msgGO = 'Game Over'
+msgPlrHP = ''
 
 
 mouse_x, mouse_y = 0, 0
@@ -67,7 +68,8 @@ sndLaser2 = loadSnd('laser-02.wav')
 powerup   = loadSnd('Power-Up.wav')
 
 
-fntObj  = loadFont('Anita semi square.ttf', 32)
+fntObj  = loadFont('Anita semi square.ttf', 12)
+#fntGMObj  = loadFont('Anita semi square.ttf', 32)
 
 
 ### SETTING COORDINATES
@@ -130,16 +132,16 @@ while True:
             if event.key == K_ESCAPE:
                 pygame.event.post(pygame.event.Event(QUIT))
             elif event.key == K_w:
-                print 'W'
+               # print 'W'
                 plr.changeSpeed([0, -2])
             elif event.key == K_s:
-                print 'S'
+              #  print 'S'
                 plr.changeSpeed([0, 2])
             elif event.key == K_a:
-                print 'A'
+              #  print 'A'
                 plr.changeSpeed([-2, 0])
             elif event.key == K_d:
-                print 'D'
+              #  print 'D'
                 plr.changeSpeed([2, 0])
 
 
@@ -153,6 +155,14 @@ while True:
         at.rect = at.rect.move(at.speed)
         at.checkBound()
         screen.blit(at.img, at.rect)
+
+        msgPlrHP = str(at.getHP())
+        msgScreenObj = fntObj.render(msgPlrHP, False, red)
+        msgRect = msgScreenObj.get_rect()
+        msgRect.topleft = (at.rect.x + (at.rect.width/2 - msgRect.width/2), at.rect.y - (msgRect.height + 2))
+        screen.blit(msgScreenObj, msgRect)         
+
+        # make some AI decision
         if spdCnt < 0:
             decision = at.ai_decision()
 
@@ -161,7 +171,7 @@ while True:
                 laser1Rect.y = at.rect.y + (at.rect.height / 2) 
                 beamsList.append(Weapon('laser_'+ str(len(beamsList)), 
                                          1, -7, 
-                                         at.rect.x - (at.rect.width + 2), 
+                                         at.rect.x - (laser1Rect.width + 2), 
                                          at.rect.y + (at.rect.height / 2),
                                          laser1, laser1Rect, sndLaser2)
                 )
@@ -180,6 +190,13 @@ while True:
     plr.rect = plr.rect.move(plr.speed)
     plr.checkBound()
     screen.blit(plr.img, plr.rect)
+
+    # printing Player HP
+    msgPlrHP = str(plr.getHP())
+    msgScreenObj = fntObj.render(msgPlrHP, False, red)
+    msgRect = msgScreenObj.get_rect()
+    msgRect.topleft = (plr.rect.x + (plr.rect.width/2 - msgRect.width/2), plr.rect.y - (msgRect.height + 2))
+    screen.blit(msgScreenObj, msgRect)    
 
 
 ### Processing BEAMS
