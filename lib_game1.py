@@ -42,3 +42,13 @@ def loadFont(file_name, font_size):
         raise SystemExit, messag
 
     return fnt
+
+
+def checkCollision(rect, rectList):
+    collision = False
+    idx = rect.collidelist(rectList)
+    print "collision idx: "+str(idx)
+    if idx > -1:
+        collision = True
+
+    return collision
