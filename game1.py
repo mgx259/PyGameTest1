@@ -21,6 +21,7 @@ spdCnt = cAICooldown
 msgGO = 'Game Over :('
 msgWIN = 'You Win :)'
 msgPlrHP = ''
+finalMsg = ''
 
 
 mouse_x, mouse_y = 0, 0
@@ -30,11 +31,12 @@ atackersList = []
 deadList     = []
 allObjList   = []
 
-showBeam   = False
-showLaser  = False
-showDead   = False
+#showBeam   = False
+#showLaser  = False
+#showDead   = False
 #showDead2 = False
 gameOver   = False
+gameWon   = False
 
 
 
@@ -122,6 +124,7 @@ plr.rect.y = (bgRect.height / 2) - (plr.rect.height / 2)
 
 ast1 = GenObj('Asteroid', 50, astr, astrRect, screen_bound)
 ast1.setRndPosition()
+# TODO: check if not colliding with other object
 
 deadList.append(ast1)
 
@@ -135,7 +138,7 @@ deadList.append(ast1)
 #       Main LOOP
 ########################
 
-while True:
+while len(finalMsg) == 0:
     for event in pygame.event.get():
         if event.type == pygame.QUIT: 
             pygame.quit()
@@ -258,6 +261,7 @@ while True:
             pass
         else:
             beamsList.remove(bm)
+            continue
 
         ### hit alien
         targetIdx = bm.rect.collidelist(atackersList)
@@ -272,6 +276,7 @@ while True:
             if not targetObj.isAlive():
                 deadList.append(targetObj)
                 atackersList.remove(targetObj)
+            continue
 
         ### hit dead object 
         targetIdx = bm.rect.collidelist(deadList)
@@ -286,30 +291,45 @@ while True:
             # if not targetObj.isAlive():
             #     deadList.append(targetObj)
             #     atackersList.remove(targetObj)
+            continue
 
         ### hit player
         if bm.rect.colliderect(plr.rect):
             plr.hit(bm.damage)
             beamsList.remove(bm)
             sndAlien1.play()
+            continue
 
     ### player lost
     if plr.getHP() < 1:
-        msgScreenObj = fntGMObj.render(msgGO, False, red)
-        msgRect = msgScreenObj.get_rect()
-        msgRect.topleft = (bgRect.width/2 - msgRect.width/2, bgRect.height/2 - msgRect.height/2)
-        screen.blit(msgScreenObj, msgRect)
+        gameOver = True
+        finalMsg = msgGO
 
     ### win if no atckers left
     if len(atackersList) == 0:
-        msgScreenObj = fntGMObj.render(msgWIN, False, red)
-        msgRect = msgScreenObj.get_rect()
-        msgRect.topleft = (bgRect.width/2 - msgRect.width/2, bgRect.height/2 - msgRect.height/2)
-        screen.blit(msgScreenObj, msgRect)
-
+        gameWon = True
+        finalMsg = msgWIN
 
     pygame.display.flip()
     fpsClock.tick(cFPS)
 
 
+### show final message
+while True:
+    for event in pygame.event.get():
+        if event.type == KEYDOWN: 
+            pygame.quit()
+            sys.exit()
+
+    screen.blit(bg, bgRect)
+
+    msgScreenObj = fntGMObj.render(finalMsg, False, red)
+    msgRect = msgScreenObj.get_rect()
+    msgRect.topleft = (bgRect.width/2 - msgRect.width/2, bgRect.height/2 - msgRect.height/2)
+    screen.blit(msgScreenObj, msgRect)
+
+    pygame.display.flip()
+
+
+pygame.quit()
 sys.exit()
