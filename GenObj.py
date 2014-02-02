@@ -6,7 +6,8 @@ class GenObj():
 
     __Speed = [0,0]
     __HP = 10
-    __ALIVE = True
+    __Alive = True
+    __Weight = 100
 
     def __init__(self, name, hp, img, rect, boundries):
       #  self.__Speed = speed
@@ -37,7 +38,7 @@ class GenObj():
         self.hp -= damage
         if (self.hp < 1):
             self.stop()
-            self.__ALIVE = False
+            self.__Alive = False
 
     def checkBound(self):
         if self.rect.left < 0 or self.rect.right > self.bound[0]:
@@ -71,3 +72,12 @@ class GenObj():
         spd1 = choice((-2, -1, 1, 2))
         spd2 = choice((-3, -2, -1, 1, 2, 3))
         return [spd1, spd2]        
+
+    def isAlive(self):
+        return self.__Alive
+
+    def setRndPosition(self):
+        x = randint(0, self.bound[0] - self.rect.width)
+        y = randint(0, self.bound[1] - self.rect.height)
+        self.rect.x = x
+        self.rect.y = y
