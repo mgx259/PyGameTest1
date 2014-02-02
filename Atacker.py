@@ -33,7 +33,12 @@ class Atacker(GenObj):
         """ Take some "smart" decision """
 
         decision = {}
+        
+        decision['direction_change'] = False
+        decision['fire'] = False
+
         decision['direction_change'] = self.changeDirection()
-        decision['fire'] = self.fire()
+        if not (decision['direction_change']):
+            decision['fire'] = self.fire()
 
         return decision
