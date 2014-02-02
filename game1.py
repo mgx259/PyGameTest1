@@ -17,8 +17,9 @@ cAICooldown = 50
 spdCnt = cAICooldown
 
 
-msg = 'Hi there!!!!'
-msgGO = 'Game Over'
+# msg = 'Hi there!!!!'
+msgGO = 'Game Over :('
+msgWIN = 'You Win :)'
 msgPlrHP = ''
 
 
@@ -26,6 +27,8 @@ mouse_x, mouse_y = 0, 0
 
 beamsList    = []
 atackersList = []
+deadList     = []
+allObjList   = []
 
 showBeam   = False
 showLaser  = False
@@ -58,8 +61,17 @@ bg, bgRect           = loadImg('Space-2.jpg', 'Backgrounds')
 l_aln1, aln1Rect     = loadImg('alienspaceship_left.png', 'Spaceships')
 r_aln1, r_aln1Rect   = loadImg('alienspaceship_right.png', 'Spaceships')
 d_aln, d_alnRect     = loadImg('alienspaceship_left_dead.png', 'Spaceships')
+
+alnPrt1, alnPrt1Rect   = loadImg('cockpit.png', 'Spaceships')
+alnPrt2, alnPrt2Rect   = loadImg('wing_l1.png', 'Spaceships')
+alnPrt3, alnPrt3Rect   = loadImg('wing_r1.png', 'Spaceships')
+alnPrt4, alnPrt4Rect   = loadImg('wing_r2.png', 'Spaceships')
+
 station, stationRect = loadImg('Spacestation.png')
-beam1, beam1Rect     = loadImg('beam1_yellow_right.png', 'Weaporns')
+astr, astrRect = loadImg('Asteroid_small_1.png')
+
+
+beam1, beam1Rect     = loadImg('beam1_yellow_2.png', 'Weaporns')
 laser1, laser1Rect   = loadImg('laser1_red.png', 'Weaporns')
 
 sndAlien1 = loadSnd('alien-noise-01.wav')
@@ -69,8 +81,7 @@ powerup   = loadSnd('Power-Up.wav')
 
 
 fntObj  = loadFont('Anita semi square.ttf', 12)
-#fntGMObj  = loadFont('Anita semi square.ttf', 32)
-
+fntGMObj  = loadFont('Anita semi square.ttf', 48)
 
 ### SETTING COORDINATES
 
@@ -106,6 +117,20 @@ plr = Player('MiR', 15, station, stationRect, screen_bound)
 plr.rect.x = plr.rect.width + 5
 plr.rect.y = (bgRect.height / 2) - (plr.rect.height / 2)
 
+
+
+
+ast1 = GenObj('Asteroid', 50, astr, astrRect, screen_bound)
+ast1.setRndPosition()
+
+deadList.append(ast1)
+
+
+# allObjList.extend(plr)
+# allObjList.extend(atackersList)
+# allObjList.extend(deadList)
+
+
 ########################
 #       Main LOOP
 ########################
@@ -122,7 +147,8 @@ while True:
           #  beam1_x, beam1_y = event.pos
             beamsList.append(Weapon('beam_'+ str(len(beamsList)), 
                                      2, 5, 
-                                     plr.rect.centerx, plr.rect.y + (plr.rect.height / 2),
+                                     plr.rect.x + plr.rect.width + beam1Rect.width +1, 
+                                     plr.rect.y + (plr.rect.height / 2),
                                      beam1, beam1Rect, sndLaser1)
             )
 
@@ -144,8 +170,25 @@ while True:
               #  print 'D'
                 plr.changeSpeed([2, 0])
 
-
     screen.blit(bg, bgRect)
+
+
+
+
+
+### Show dead ships
+    for dd in deadList:
+        screen.blit(dd.img, dd.rect)
+
+
+#    if showDead :
+#        screen.blit(d_aln, d_alnRect)
+
+    # if showDead2 :
+    #     screen.blit(kv1dead, kv2deadRect)
+
+######
+
 
     spdCnt -= 1
 
@@ -212,33 +255,54 @@ while True:
 
         if (bm.rect.left > 0 and bm.rect.right < width and 
             bm.rect.top > 0 and bm.rect.bottom < height):
-          #  bm.visible = True
             pass
         else:
             beamsList.remove(bm)
 
+        ### hit alien
         targetIdx = bm.rect.collidelist(atackersList)
         if targetIdx > -1:
+            print "1 IDX: {}".format(targetIdx)
             targetObj = atackersList[targetIdx]
             print "Popal v "+ targetObj.name + " HP left: "+ str(targetObj.getHP())
             targetObj.hit(bm.damage)
-            d_alnRect.center = aln1Rect.center
             beamsList.remove(bm)
- #           showDead = True
+            sndAlien1.play()
+            #d_alnRect.center = aln1Rect.center
+            if not targetObj.isAlive():
+                deadList.append(targetObj)
+                atackersList.remove(targetObj)
+
+        ### hit dead object 
+        targetIdx = bm.rect.collidelist(deadList)
+        if targetIdx > -1:
+            print "2 IDX: {}".format(targetIdx)
+            targetObj = deadList[targetIdx]
+            print "Popal v "+ targetObj.name + " HP left: "+ str(targetObj.getHP())
+            targetObj.hit(bm.damage)
+            beamsList.remove(bm)
+            sndAlien1.play()
+            #d_alnRect.center = aln1Rect.center
+            # if not targetObj.isAlive():
+            #     deadList.append(targetObj)
+            #     atackersList.remove(targetObj)
+
+        ### hit player
+        if bm.rect.colliderect(plr.rect):
+            plr.hit(bm.damage)
+            beamsList.remove(bm)
             sndAlien1.play()
 
+    ### player lost
+    if plr.getHP() < 1:
+        msgScreenObj = fntGMObj.render(msgGO, False, red)
+        msgRect = msgScreenObj.get_rect()
+        msgRect.topleft = (bgRect.width/2 - msgRect.width/2, bgRect.height/2 - msgRect.height/2)
+        screen.blit(msgScreenObj, msgRect)
 
-###########
-    if showDead :
-        screen.blit(d_aln, d_alnRect)
-
-    # if showDead2 :
-    #     screen.blit(kv1dead, kv2deadRect)
-
-######
-
-    if gameOver:
-        msgScreenObj = fntObj.render(msgGO, False, red)
+    ### win if no atckers left
+    if len(atackersList) == 0:
+        msgScreenObj = fntGMObj.render(msgWIN, False, red)
         msgRect = msgScreenObj.get_rect()
         msgRect.topleft = (bgRect.width/2 - msgRect.width/2, bgRect.height/2 - msgRect.height/2)
         screen.blit(msgScreenObj, msgRect)
