@@ -2,43 +2,38 @@ from GenObj import *
 
 class Atacker(GenObj):
     """Basic enemy class"""
-    speed = [0, 0]
+   # speed = [0, 0]
+  #  __Alive = True
 
-    def __init__(self, name, hp, img_l, img_r, rect, boundries):
-      #  self.__Speed = speed
+    def __init__(self, name, hp, img, rect, boundries):
+
+        GenObj.__init__(self, name, hp, img, rect, boundries)
         self.__HP = hp
+        # self.__Alive = True
+        self.setAlive()
 
         self.name = name
         self.initMove()
         self.hp = hp
-        self.img = img_l
-        self.img_l = img_l
-        self.img_r = img_r
-        self.rect = rect
+        self.img = img
+        self.rect = rect.copy()
         self.bound = boundries
 
-
-    def checkBound(self):
-        if self.rect.left < 0:
-            self.speed[0] = self.speed[0] * -1
-            self.img = self.img_r
-        if self.rect.right > self.bound[0]:
-            self.speed[0] = self.speed[0] * -1
-            self.img = self.img_l
-        if self.rect.top < 0 or self.rect.bottom > self.bound[1]:
-            self.speed[1] = self.speed[1] * -1   
+        self.rect.x = self.bound[0] - self.rect.width - 1
+        self.setRndPosition(False, True)
 
 
     def ai_decision(self):
         """ Take some "smart" decision """
-
         decision = {}
-        
         decision['direction_change'] = False
         decision['fire'] = False
 
-        decision['direction_change'] = self.changeDirection()
-        if not (decision['direction_change']):
+      #  print "AI decision"
+        if self.isAlive():
+         #   print "HE HE HE: {}".format(self.isAlive())
+            decision['direction_change'] = self.changeDirection()
+            # if not (decision['direction_change']):
             decision['fire'] = self.fire()
 
         return decision
