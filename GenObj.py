@@ -6,7 +6,7 @@ class GenObj():
 
     __Speed = [0,0]
     __HP = 10
-    __Alive = True
+    __Alive = None
     __Weight = 100
     __moveCooldown = 50
     __fireCooldown = 20
@@ -47,6 +47,7 @@ class GenObj():
     def checkBound(self):
         if self.rect.left < 0 or self.rect.right > self.bound[0]:
             self.speed[0] = self.speed[0] * -1
+         #   self.img = pygame.transfor.flip(self.img, True, False)
         if self.rect.top < 0 or self.rect.bottom > self.bound[1]:
             self.speed[1] = self.speed[1] * -1      
 
@@ -86,8 +87,15 @@ class GenObj():
         spd2 = choice((-3, -2, -1, 1, 2, 3))
         return [spd1, spd2]        
 
+    def setAlive(self):
+        self.__Alive = True
+        
     def isAlive(self):
+     #   print "name: {} isAlive:{} HP:{}".format(self.name, self.__Alive, self.hp)
         return self.__Alive
+
+    def setDead(self):
+        self.__Alive = False
 
     def setRndPosition(self, only_x=False, only_y=False):
         if not only_y:
